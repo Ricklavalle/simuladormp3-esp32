@@ -1,0 +1,65 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET    -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+// 🎵 Letra reducida para el ejemplo
+const char* lyrics[] = {
+  "This hit, that ice cold",
+  "Michelle Pfeiffer, that white gold",
+  "Stylin', wildin'",
+  "Livin' it up in the city",
+  "Got Chucks on with Saint Laurent",
+  "Gotta kiss myself, I'm so pretty!",
+  "Girls hit your hallelujah",
+  "Cause Uptown Funk gon' give it to ya",
+  "Saturday night and we in the spot",
+  "Don't believe me just watch!"
+};
+
+int totalLines = sizeof(lyrics) / sizeof(lyrics[0]);
+
+int scrollY = SCREEN_HEIGHT;   // posición inicial (debajo de la pantalla)
+int currentLine = 0;
+unsigned long lastScroll = 0;
+
+void setup() {
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    for (;;); 
+  }
+  display.clearDisplay();
+}
+
+void loop() {
+  display.clearDisplay();
+
+  // 📝 Título fijo arriba
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(5, 0);
+  display.println("Bruno Mars - Uptown Funk");
+
+  // 🎤 Letra desplazándose hacia arriba
+  display.setTextSize(1);
+  display.setCursor(0, scrollY);
+  display.println(lyrics[currentLine]);
+
+  display.display();
+
+  // ⏱️ Animación scroll suave
+  if (millis() - lastScroll > 100) {  // velocidad del scroll
+    scrollY -= 2;  // subir de a 2 pixeles
+
+    if (scrollY < 15) {  
+      // cuando la línea ya subió lo suficiente, pasamos a la siguiente
+      scrollY = SCREEN_HEIGHT;  
+      currentLine++;
+      if (currentLine >= totalLines) currentLine = 0;  // repetir
+    }
+    lastScroll = millis();
+  }
+}
