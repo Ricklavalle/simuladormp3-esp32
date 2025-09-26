@@ -1,0 +1,87 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET    -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+int animOffset = 0;      // Para el scroll del texto
+bool showPlay = false;   // Estado del botón (play o pausa)
+unsigned long lastToggle = 0;
+
+bool blinkState = true;  // Parpadeo de los botones
+unsigned long lastBlink = 0;
+
+int eqBars[6] = {5, 10, 15, 20, 15, 10}; // Altura de barras de "ecualizador"
+
+void setup() {
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    for (;;); // Si falla, se queda aquí
+  }
+  display.clearDisplay();
+  randomSeed(analogRead(0)); // Aleatoriedad para las barras
+}
+
+void loop() {
+  display.clearDisplay();
+
+  // 🎵 Texto animado con efecto "scroll"
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0 - animOffset, 5); 
+  display.println("Bruno Mars - Uptown Funk");
+
+  animOffset++;
+  if (animOffset > 100) animOffset = 0;
+
+  // Efecto parpadeo botones laterales (cambia cada 500ms)
+  if (millis() - lastBlink > 500) {
+    blinkState = !blinkState;
+    lastBlink = millis();
+  }
+
+  // ⏮ Botón atrás
+  if (blinkState) {
+    display.fillTriangle(20, 50, 20, 40, 30, 45, SSD1306_WHITE);
+    display.fillTriangle(10, 50, 10, 40, 20, 45, SSD1306_WHITE);
+    display.fillRect(8, 40, 2, 10, SSD1306_WHITE);
+  }
+
+  // ⏯ Botón central (play o pausa alternando cada 2s)
+  if (showPlay) {
+    // ▶ Play
+    display.fillTriangle(60, 40, 60, 50, 70, 45, SSD1306_WHITE);
+  } else {
+    // ⏯ Pausa
+    display.fillRect(60, 40, 4, 10, SSD1306_WHITE);
+    display.fillRect(68, 40, 4, 10, SSD1306_WHITE);
+  }
+
+  // ⏭ Botón adelante
+  if (blinkState) {
+    display.fillTriangle(98, 40, 98, 50, 108, 45, SSD1306_WHITE);
+    display.fillTriangle(108, 40, 108, 50, 118, 45, SSD1306_WHITE);
+    display.fillRect(118, 40, 2, 10, SSD1306_WHITE);
+  }
+
+  // 🎚️ Ecualizador animado
+  for (int i = 0; i < 6; i++) {
+    int h = eqBars[i];
+    display.fillRect(10 + i * 20, 30 - h, 8, h, SSD1306_WHITE);
+
+    // Cambiar altura de manera aleatoria
+    eqBars[i] = random(5, 25);
+  }
+
+  display.display();
+
+  // Alternar play/pausa cada 2 segundos
+  if (millis() - lastToggle > 2000) {
+    showPlay = !showPlay;
+    lastToggle = millis();
+  }
+
+  delay(120);
+}
