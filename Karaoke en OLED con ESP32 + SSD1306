@@ -1,0 +1,58 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET    -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+unsigned long lastChange = 0;
+int currentLine = 0;
+
+// 🎤 Fragmentos de la letra (ejemplo reducido por memoria)
+const char* lyrics[] = {
+  "This hit, that ice cold",
+  "Michelle Pfeiffer, that white gold",
+  "Stylin', wildin'",
+  "Livin' it up in the city",
+  "Got Chucks on with Saint Laurent",
+  "Gotta kiss myself, I'm so pretty!",
+  "Girls hit your hallelujah (whoo)",
+  "Cause Uptown Funk gon' give it to ya",
+  "Saturday night and we in the spot",
+  "Don't believe me just watch!"
+};
+
+int totalLines = sizeof(lyrics) / sizeof(lyrics[0]);
+
+void setup() {
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    for (;;); 
+  }
+  display.clearDisplay();
+}
+
+void loop() {
+  display.clearDisplay();
+
+  // 📝 Mostrar título
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(5, 0);
+  display.println("Bruno Mars - Uptown Funk");
+
+  // 🎤 Mostrar frase actual centrada
+  display.setTextSize(1);
+  display.setCursor(0, 25); 
+  display.println(lyrics[currentLine]);
+
+  display.display();
+
+  // ⏱️ Cambiar de línea cada 3 segundos
+  if (millis() - lastChange > 3000) {
+    currentLine++;
+    if (currentLine >= totalLines) currentLine = 0; // Repetir
+    lastChange = millis();
+  }
+}
